@@ -137,7 +137,8 @@ window.handleAuthSubmit = async (e) => {
     }
     showToast("Bem-vindos ao controle financeiro!");
   } catch (error) {
-    let msg = "Não foi possível autenticar. Verifique e-mail e senha.";
+    console.error("Erro auth:", error.code, error.message);
+    let msg = `Não foi possível autenticar (${error.code || "erro"}). Verifique e-mail e senha.`;
     if (
       error.code === "auth/invalid-credential" ||
       error.code === "auth/wrong-password" ||
