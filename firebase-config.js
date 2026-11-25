@@ -1,11 +1,8 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// firebase-config.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// =========================================================================
-// PREENCHA ABAIXO COM AS CREDENCIAIS DO SEU PROJETO NO FIREBASE CONSOLE
-// (Configurações do Projeto > Seus Aplicativos > Web)
-// =========================================================================
 const firebaseConfig = {
   apiKey: "AIzaSyBG77aD4g-k96Wy9irxUV3H3GybaL29PbY",
   authDomain: "controle-financeiro-gj.firebaseapp.com",

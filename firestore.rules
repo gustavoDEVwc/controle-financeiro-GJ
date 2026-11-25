@@ -10,12 +10,14 @@ service cloud.firestore {
       );
     }
 
-    // Coleção principal de lançamentos (despesas, entradas e parcelas)
+    match /artifacts/{appId}/public/data/{collectionName}/{docId} {
+      allow read, write: if isAuthorizedCouple();
+    }
+
     match /transactions/{docId} {
       allow read, write: if isAuthorizedCouple();
     }
 
-    // Caso use subcoleções ou outros documentos do casal
     match /households/{houseId}/{document=**} {
       allow read, write: if isAuthorizedCouple();
     }
