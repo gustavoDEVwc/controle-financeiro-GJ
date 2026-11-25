@@ -1,0 +1,82 @@
+/* Ajustes nativos para iOS Safari */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  background-color: #f4f6f9;
+  color: #1e293b;
+  overscroll-behavior-y: none;
+  padding-bottom: calc(88px + var(--sab));
+}
+
+/* Previne o zoom automático do Safari ao focar em inputs (font-size >= 16px) */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+/* Safe areas */
+.safe-top {
+  padding-top: calc(16px + var(--sat));
+}
+
+.safe-bottom-nav {
+  padding-bottom: calc(10px + var(--sab));
+}
+
+.safe-modal-bottom {
+  padding-bottom: calc(24px + var(--sab));
+}
+
+/* Barra de rolagem oculta para carrosséis horizontais */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animações suaves estilo iOS */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-slide-up {
+  animation: slideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}

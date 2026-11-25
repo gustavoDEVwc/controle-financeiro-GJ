@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthorizedCouple() {
+      return request.auth != null && (
+        request.auth.uid == "UNu6md1mheSrvpClvIULAuMGrSv1" ||
+        request.auth.uid == "dTfQHVK7nTaZqi90u3eqcsHNhZd2"
+      );
+    }
+
+    // Coleção principal de lançamentos (despesas, entradas e parcelas)
+    match /transactions/{docId} {
+      allow read, write: if isAuthorizedCouple();
+    }
+
+    // Caso use subcoleções ou outros documentos do casal
+    match /households/{houseId}/{document=**} {
+      allow read, write: if isAuthorizedCouple();
+    }
+  }
+}

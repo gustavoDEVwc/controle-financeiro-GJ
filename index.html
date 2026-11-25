@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Meta tags essenciais para Safari no iOS e Web App (PWA) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Finanças Casal" />
+  <meta name="theme-color" content="#103D82" />
+  <title>Finanças Casal | Gustavo & Jessica</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Chart.js para Gráfico -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              900: '#0B2B5C',
+              800: '#103D82',
+              700: '#1752AB',
+              100: '#E6EEF9',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="antialiased selection:bg-navy-800 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- TELA DE AUTENTICAÇÃO (LOGIN / CADASTRO CASAL)                         -->
+  <!-- ===================================================================== -->
+  <div id="auth-screen" class="fixed inset-0 z-50 bg-[#F4F6F9] flex flex-col justify-between overflow-y-auto hidden">
+    <div class="bg-gradient-to-br from-[#0B2B5C] via-[#103D82] to-[#1752AB] text-white px-6 pb-12 safe-top rounded-b-[32px] shadow-lg">
+      <div class="max-w-md mx-auto pt-4">
+        <div class="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center mb-4 border border-white/20">
+          <i data-lucide="wallet" class="w-7 h-7 text-white"></i>
+        </div>
+        <h1 class="text-2xl font-extrabold tracking-tight">Finanças Casal</h1>
+        <p class="text-blue-100 text-sm mt-1">Gustavo, Jessica & Conta Conjunta em sincronia em tempo real.</p>
+      </div>
+    </div>
+
+    <div class="max-w-md w-full mx-auto px-5 -mt-7 flex-1 flex flex-col justify-start pb-8">
+      <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/70 p-6 border border-slate-100">
+        <!-- Seletor Entrar / Criar Conta -->
+        <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-2xl mb-6">
+          <button type="button" id="tab-login" onclick="switchAuthMode('login')" class="py-2.5 text-sm font-semibold rounded-xl bg-white text-[#103D82] shadow-sm transition-all">
+            Entrar
+          </button>
+          <button type="button" id="tab-register" onclick="switchAuthMode('register')" class="py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-all">
+            Criar Acesso
+          </button>
+        </div>
+
+        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+          <div id="auth-name-group" class="hidden">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Quem está acessando?</label>
+            <select id="auth-person" class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-medium focus:outline-none focus:border-[#103D82] focus:bg-white transition-colors">
+              <option value="Gustavo">Gustavo</option>
+              <option value="Jessica">Jessica</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">E-mail</label>
+            <input type="email" id="auth-email" required placeholder="seuemail@exemplo.com" autocomplete="email"
+              class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#103D82] focus:bg-white transition-colors" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Senha</label>
+            <input type="password" id="auth-password" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="current-password"
+              class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#103D82] focus:bg-white transition-colors" />
+          </div>
+
+          <div id="auth-error" class="hidden p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium"></div>
+
+          <button type="submit" id="auth-submit-btn"
+            class="w-full py-3.5 rounded-2xl bg-[#103D82] hover:bg-[#0B2B5C] active:scale-[0.99] text-white font-bold text-base shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2">
+            <span>Entrar no App</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-100">
+          <p class="text-xs text-slate-500 text-center leading-relaxed">
+            💡 <strong>Dica para o casal:</strong> Tanto o e-mail do Gustavo quanto o da Jessica acessam o mesmo painel compartilhado automaticamente.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APLICATIVO PRINCIPAL                                                  -->
+  <!-- ===================================================================== -->
+  <div id="app-container" class="max-w-lg mx-auto min-h-screen flex flex-col">
+
+    <!-- CABEÇALHO FIXO / GRADIENTE NAVY -->
+    <header class="bg-gradient-to-br from-[#0B2B5C] via-[#103D82] to-[#1752AB] text-white px-5 pb-6 safe-top rounded-b-[30px] shadow-md">
+      <!-- Linha Superior: Saudação + Status Sync + Configurações -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center border border-white/20 font-bold text-sm" id="user-avatar">
+            GJ
+          </div>
+          <div>
+            <p class="text-[11px] text-blue-200 font-medium leading-none">Controle Financeiro</p>
+            <h1 class="text-base font-bold tracking-tight mt-0.5 flex items-center gap-1.5">
+              <span>Gustavo & Jessica</span>
+              <span id="sync-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-400/20 text-emerald-200 border border-emerald-300/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Ao vivo
+              </span>
+            </h1>
+          </div>
+        </div>
+
+        <button onclick="switchTab('settings')" aria-label="Configurações"
+          class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center transition-all border border-white/15">
+          <i data-lucide="settings" class="w-4 h-4 text-white"></i>
+        </button>
+      </div>
+
+      <!-- Seletor de Mês/Ano -->
+      <div class="flex items-center justify-between bg-white/10 backdrop-blur-md rounded-2xl p-1.5 border border-white/15 mb-4">
+        <button onclick="changeMonth(-1)" aria-label="Mês anterior"
+          class="w-9 h-9 rounded-xl hover:bg-white/15 active:scale-90 flex items-center justify-center transition-all">
+          <i data-lucide="chevron-left" class="w-5 h-5"></i>
+        </button>
+        <div class="text-center">
+          <span id="current-month-label" class="text-sm font-bold capitalize tracking-wide">Novembro 2026</span>
+        </div>
+        <button onclick="changeMonth(1)" aria-label="Próximo mês"
+          class="w-9 h-9 rounded-xl hover:bg-white/15 active:scale-90 flex items-center justify-center transition-all">
+          <i data-lucide="chevron-right" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Card Principal: Saldo Consolidado do Período/Conta -->
+      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-blue-200 font-medium" id="balance-subtitle">Saldo do Mês (Todas as Contas)</p>
+            <h2 id="total-balance" class="text-3xl font-extrabold tracking-tight mt-0.5">R$ 0,00</h2>
+          </div>
+          <button onclick="togglePrivacy()" aria-label="Ocultar ou mostrar valores"
+            class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+            <i id="privacy-icon" data-lucide="eye" class="w-4 h-4 text-blue-100"></i>
+          </button>
+        </div>
+
+        <!-- Entradas x Saídas do Mês -->
+        <div class="grid grid-cols-2 gap-3 mt-4 pt-3.5 border-t border-white/15">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
+              <i data-lucide="arrow-up-right" class="w-4 h-4 text-emerald-300"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-[11px] text-blue-200">Entradas</p>
+              <p id="total-income" class="text-sm font-bold text-emerald-300 truncate">R$ 0,00</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-red-500/20 border border-red-400/30 flex items-center justify-center shrink-0">
+              <i data-lucide="arrow-down-right" class="w-4 h-4 text-red-300"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-[11px] text-blue-200">Despesas</p>
+              <p id="total-expense" class="text-sm font-bold text-red-300 truncate">R$ 0,00</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO DAS ABAS -->
+    <main class="flex-1 px-4 pt-4 space-y-4">
+
+      <!-- =============================================================== -->
+      <!-- ABA 1: RESUMO / DASHBOARD                                       -->
+      <!-- =============================================================== -->
+      <section id="view-dashboard" class="space-y-4">
+
+        <!-- Seletor Rápido de Contas -->
+        <div>
+          <div class="flex items-center justify-between mb-2 px-1">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Contas & Saldos</h3>
+            <span class="text-[11px] text-slate-400">Toque para filtrar</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- Card Todas -->
+            <button onclick="selectAccountFilter('Todas')" id="acc-card-Todas"
+              class="account-card text-left p-3.5 rounded-2xl bg-white border-2 border-[#103D82] shadow-sm transition-all active:scale-[0.98]">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="w-7 h-7 rounded-xl bg-navy-100 text-[#103D82] flex items-center justify-center">
+                  <i data-lucide="layers" class="w-4 h-4"></i>
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-navy-100 text-[#103D82]">Geral</span>
+              </div>
+              <p class="text-xs font-semibold text-slate-500">Todas as Contas</p>
+              <p id="bal-Todas" class="text-sm font-extrabold text-slate-800 mt-0.5 truncate">R$ 0,00</p>
+            </button>
+
+            <!-- Card Conta Conjunta -->
+            <button onclick="selectAccountFilter('Conjunta')" id="acc-card-Conjunta"
+              class="account-card text-left p-3.5 rounded-2xl bg-white border-2 border-transparent shadow-sm transition-all active:scale-[0.98]">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="w-7 h-7 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <i data-lucide="heart" class="w-4 h-4"></i>
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">Casal</span>
+              </div>
+              <p id="label-card-Conjunta" class="text-xs font-semibold text-slate-500 truncate">Conta Conjunta</p>
+              <p id="bal-Conjunta" class="text-sm font-extrabold text-slate-800 mt-0.5 truncate">R$ 0,00</p>
+            </button>
+
+            <!-- Card Gustavo -->
+            <button onclick="selectAccountFilter('Gustavo')" id="acc-card-Gustavo"
+              class="account-card text-left p-3.5 rounded-2xl bg-white border-2 border-transparent shadow-sm transition-all active:scale-[0.98]">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="w-7 h-7 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
+                  <i data-lucide="user" class="w-4 h-4"></i>
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">Individual</span>
+              </div>
+              <p id="label-card-Gustavo" class="text-xs font-semibold text-slate-500 truncate">Conta Gustavo</p>
+              <p id="bal-Gustavo" class="text-sm font-extrabold text-slate-800 mt-0.5 truncate">R$ 0,00</p>
+            </button>
+
+            <!-- Card Jessica -->
+            <button onclick="selectAccountFilter('Jessica')" id="acc-card-Jessica"
+              class="account-card text-left p-3.5 rounded-2xl bg-white border-2 border-transparent shadow-sm transition-all active:scale-[0.98]">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="w-7 h-7 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+                  <i data-lucide="user" class="w-4 h-4"></i>
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700">Individual</span>
+              </div>
+              <p id="label-card-Jessica" class="text-xs font-semibold text-slate-500 truncate">Conta Jessica</p>
+              <p id="bal-Jessica" class="text-sm font-extrabold text-slate-800 mt-0.5 truncate">R$ 0,00</p>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro de Categorias (Chips Horizontais) -->
+        <div>
+          <div class="flex items-center justify-between mb-2 px-1">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Filtrar Categoria</h3>
+            <button id="clear-cat-btn" onclick="selectCategoryFilter('Todas')" class="hidden text-xs font-semibold text-[#103D82]">
+              Limpar filtro
+            </button>
+          </div>
+          <div id="category-filter-chips" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <!-- Gráfico de Pizza (Rosca): Despesas por Categoria -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-800">Despesas por Categoria</h3>
+              <p id="chart-subtitle" class="text-xs text-slate-400">Distribuição do mês selecionado</p>
+            </div>
+            <span id="chart-total-badge" class="px-2.5 py-1 rounded-xl bg-red-50 text-red-600 text-xs font-bold">
+              R$ 0,00
+            </span>
+          </div>
+
+          <div id="chart-wrapper" class="relative h-56 w-full flex items-center justify-center">
+            <canvas id="expenses-pie-chart"></canvas>
+            <div id="chart-empty-state" class="hidden flex-col items-center justify-center text-center py-6">
+              <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-2">
+                <i data-lucide="pie-chart" class="w-6 h-6"></i>
+              </div>
+              <p class="text-sm font-semibold text-slate-600">Sem despesas registradas</p>
+              <p class="text-xs text-slate-400 mt-0.5">Toque no botão + para lançar um gasto.</p>
+            </div>
+          </div>
+
+          <!-- Legenda Detalhada Interativa -->
+          <div id="chart-legend" class="mt-4 pt-3 border-t border-slate-100 space-y-2">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <!-- Últimos Lançamentos do Mês (Preview) -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold text-slate-800">Lançamentos do Mês</h3>
+            <button onclick="switchTab('transactions')" class="text-xs font-bold text-[#103D82] hover:underline">
+              Ver todos
+            </button>
+          </div>
+          <div id="dashboard-recent-list" class="divide-y divide-slate-100">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- ABA 2: EXTRATO COMPLETO (EDIÇÃO E EXCLUSÃO)                     -->
+      <!-- =============================================================== -->
+      <section id="view-transactions" class="hidden space-y-4">
+        <!-- Barra de Busca e Filtros -->
+        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="search-input" oninput="renderApp()" placeholder="Buscar descrição ou pagamento..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#103D82] focus:bg-white" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <select id="filter-account-select" onchange="selectAccountFilter(this.value)"
+              class="px-3 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 font-medium focus:outline-none focus:border-[#103D82]">
+              <!-- Preenchido via JS -->
+            </select>
+
+            <select id="filter-category-select" onchange="selectCategoryFilter(this.value)"
+              class="px-3 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 font-medium focus:outline-none focus:border-[#103D82]">
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Lista Completa de Transações -->
+        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
+          <div class="flex items-center justify-between mb-3 px-1">
+            <h3 class="text-sm font-bold text-slate-700">Histórico Detalhado</h3>
+            <span id="transactions-count-badge" class="text-xs font-semibold text-slate-400">0 itens</span>
+          </div>
+          <div id="full-transactions-list" class="divide-y divide-slate-100">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- ABA 3: CONFIGURAÇÕES (CATEGORIAS, PAGAMENTOS, CONTAS E CONTA)   -->
+      <!-- =============================================================== -->
+      <section id="view-settings" class="hidden space-y-4">
+
+        <!-- Gerenciar Categorias -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-3.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-slate-800">Categorias</h3>
+              <p class="text-xs text-slate-400">Personalize as categorias de despesas e entradas</p>
+            </div>
+            <span class="w-8 h-8 rounded-xl bg-navy-100 text-[#103D82] flex items-center justify-center">
+              <i data-lucide="tags" class="w-4 h-4"></i>
+            </span>
+          </div>
+
+          <div class="flex gap-2">
+            <input type="text" id="new-category-input" placeholder="Nova categoria (ex: Pets, Salão)..."
+              class="flex-1 px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#103D82] focus:bg-white" />
+            <button type="button" onclick="handleAddCategory()"
+              class="px-4 py-2.5 rounded-2xl bg-[#103D82] hover:bg-[#0B2B5C] active:scale-95 text-white font-bold text-xs shrink-0 transition-all">
+              Adicionar
+            </button>
+          </div>
+
+          <div id="settings-categories-chips" class="flex flex-wrap gap-2 pt-1">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <!-- Gerenciar Formas de Pagamento -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-3.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-slate-800">Formas de Pagamento</h3>
+              <p class="text-xs text-slate-400">Adicione ou remova meios de pagamento</p>
+            </div>
+            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <i data-lucide="credit-card" class="w-4 h-4"></i>
+            </span>
+          </div>
+
+          <div class="flex gap-2">
+            <input type="text" id="new-payment-input" placeholder="Ex: Vale Alimentação, Boleto..."
+              class="flex-1 px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#103D82] focus:bg-white" />
+            <button type="button" onclick="handleAddPaymentMethod()"
+              class="px-4 py-2.5 rounded-2xl bg-[#103D82] hover:bg-[#0B2B5C] active:scale-95 text-white font-bold text-xs shrink-0 transition-all">
+              Adicionar
+            </button>
+          </div>
+
+          <div id="settings-payments-chips" class="flex flex-wrap gap-2 pt-1">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <!-- Personalizar Nomes das Contas e Padrões -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-slate-800">Contas & Preferências</h3>
+              <p class="text-xs text-slate-400">Nomes de exibição e opção padrão ao lançar</p>
+            </div>
+            <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+              <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+            </span>
+          </div>
+
+          <form onsubmit="handleSaveGeneralSettings(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Nome da Conta Casal</label>
+              <input type="text" id="cfg-label-Conjunta" required
+                class="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#103D82] focus:bg-white" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Conta 1</label>
+                <input type="text" id="cfg-label-Gustavo" required
+                  class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#103D82] focus:bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Conta 2</label>
+                <input type="text" id="cfg-label-Jessica" required
+                  class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#103D82] focus:bg-white" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Conta Padrão</label>
+                <select id="cfg-default-account"
+                  class="w-full px-3 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-medium focus:outline-none focus:border-[#103D82]">
+                  <option value="Conjunta">Conjunta</option>
+                  <option value="Gustavo">Gustavo</option>
+                  <option value="Jessica">Jessica</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Pagamento Padrão</label>
+                <select id="cfg-default-payment"
+                  class="w-full px-3 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-medium focus:outline-none focus:border-[#103D82]">
+                  <!-- Preenchido via JS -->
+                </select>
+              </div>
+            </div>
+
+            <button type="submit"
+              class="w-full py-3 rounded-2xl bg-[#103D82] hover:bg-[#0B2B5C] active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-blue-900/15 transition-all">
+              Salvar Preferências
+            </button>
+          </form>
+        </div>
+
+        <!-- Exportar Planilha & Dados da Sessão -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-4">
+          <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/70 space-y-1">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Usuário Conectado</p>
+            <p id="settings-user-email" class="text-sm font-bold text-slate-800">Carregando...</p>
+            <p class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 pt-0.5">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+              <span>Sincronizado em tempo real (Casal)</span>
+            </p>
+          </div>
+
+          <div class="bg-navy-100/60 rounded-2xl p-3.5 border border-blue-200/60 space-y-1">
+            <p class="text-xs font-bold text-[#103D82] flex items-center gap-1.5">
+              <i data-lucide="smartphone" class="w-4 h-4"></i>
+              <span>Instalar como App no iPhone (Safari)</span>
+            </p>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              No Safari, toque em <strong>Compartilhar</strong> e escolha <strong>"Adicionar à Tela de Início"</strong> para abrir em tela cheia.
+            </p>
+          </div>
+
+          <button type="button" onclick="exportTransactionsCSV()"
+            class="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm flex items-center justify-center gap-2 transition-colors">
+            <i data-lucide="download" class="w-4 h-4 text-[#103D82]"></i>
+            <span>Exportar Planilha (.CSV)</span>
+          </button>
+
+          <button type="button" onclick="handleLogout()"
+            class="w-full py-3 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm border border-red-200 flex items-center justify-center gap-2 transition-colors">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span>Sair da Conta</span>
+          </button>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- BARRA DE NAVEGAÇÃO INFERIOR FIXA (ESTILO NATIVO iOS)                  -->
+  <!-- ===================================================================== -->
+  <nav id="bottom-nav" class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-lg border-t border-slate-200/80 safe-bottom-nav px-4 pt-2">
+    <div class="max-w-lg mx-auto grid grid-cols-5 items-center relative">
+      <!-- Aba Dashboard -->
+      <button onclick="switchTab('dashboard')" id="nav-btn-dashboard"
+        class="flex flex-col items-center justify-center py-1 text-[#103D82] transition-colors">
+        <i data-lucide="pie-chart" class="w-5 h-5 mb-1"></i>
+        <span class="text-[11px] font-bold">Resumo</span>
+      </button>
+
+      <!-- Aba Extrato -->
+      <button onclick="switchTab('transactions')" id="nav-btn-transactions"
+        class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-600 transition-colors">
+        <i data-lucide="list-ordered" class="w-5 h-5 mb-1"></i>
+        <span class="text-[11px] font-semibold">Extrato</span>
+      </button>
+
+      <!-- Botão Central Flutuante (+ Novo Lançamento) -->
+      <div class="flex justify-center">
+        <button onclick="openTransactionModal()" aria-label="Adicionar novo lançamento"
+          class="-mt-7 w-14 h-14 rounded-full bg-gradient-to-tr from-[#0B2B5C] to-[#1752AB] text-white shadow-lg shadow-blue-900/35 flex items-center justify-center active:scale-90 transition-transform border-4 border-[#F4F6F9]">
+          <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
+        </button>
+      </div>
+
+      <!-- Aba Configurações -->
+      <button onclick="switchTab('settings')" id="nav-btn-settings"
+        class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-600 transition-colors">
+        <i data-lucide="sliders-horizontal" class="w-5 h-5 mb-1"></i>
+        <span class="text-[11px] font-semibold">Ajustes</span>
+      </button>
+
+      <!-- Botão Rápido Exportar / Sair ou Mês Atual -->
+      <button onclick="goToCurrentMonth()" id="nav-btn-today"
+        class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-600 transition-colors">
+        <i data-lucide="calendar" class="w-5 h-5 mb-1"></i>
+        <span class="text-[11px] font-semibold">Hoje</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: ADICIONAR / EDITAR LANÇAMENTO (BOTTOM SHEET iOS)               -->
+  <!-- ===================================================================== -->
+  <div id="transaction-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-end sm:items-center justify-center">
+    <div class="bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-3xl max-h-[92vh] overflow-y-auto shadow-2xl animate-slide-up safe-modal-bottom">
+      <!-- Handle estilo iOS -->
+      <div class="w-10 h-1.5 bg-slate-200 rounded-full mx-auto mt-3 mb-1 sm:hidden"></div>
+
+      <div class="px-6 pt-3 pb-2 flex items-center justify-between border-b border-slate-100 sticky top-0 bg-white z-10">
+        <h2 id="modal-title" class="text-lg font-extrabold text-slate-800">Novo Lançamento</h2>
+        <button onclick="closeTransactionModal()" aria-label="Fechar"
+          class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="transaction-form" onsubmit="handleTransactionSubmit(event)" class="p-6 space-y-4">
+        <input type="hidden" id="tx-id" />
+        <input type="hidden" id="tx-group-id" />
+
+        <!-- Tipo: Despesa ou Entrada -->
+        <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl">
+          <button type="button" id="type-btn-expense" onclick="setTransactionType('expense')"
+            class="py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-red-500 text-white shadow-sm transition-all">
+            <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
+            <span>Despesa</span>
+          </button>
+          <button type="button" id="type-btn-income" onclick="setTransactionType('income')"
+            class="py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 text-slate-600 transition-all">
+            <i data-lucide="arrow-up-circle" class="w-4 h-4"></i>
+            <span>Entrada</span>
+          </button>
+        </div>
+
+        <!-- Valor (Destaque) -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Valor (R$)</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg">R$</span>
+            <input type="number" id="tx-amount" step="0.01" min="0.01" required placeholder="0,00" inputmode="decimal"
+              oninput="updateInstallmentPreview()"
+              class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-2xl font-extrabold text-slate-800 focus:outline-none focus:border-[#103D82] focus:bg-white" />
+          </div>
+        </div>
+
+        <!-- Conta: Gustavo, Jessica ou Conjunta -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Conta</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="setTransactionAccount('Conjunta')" id="acc-btn-Conjunta"
+              class="tx-acc-btn py-2.5 px-2 rounded-2xl border-2 border-[#103D82] bg-navy-100/60 text-[#103D82] font-bold text-xs flex flex-col items-center gap-1 transition-all">
+              <i data-lucide="heart" class="w-4 h-4"></i>
+              <span id="form-acc-label-Conjunta">Conjunta</span>
+            </button>
+            <button type="button" onclick="setTransactionAccount('Gustavo')" id="acc-btn-Gustavo"
+              class="tx-acc-btn py-2.5 px-2 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 font-bold text-xs flex flex-col items-center gap-1 transition-all">
+              <i data-lucide="user" class="w-4 h-4"></i>
+              <span id="form-acc-label-Gustavo">Gustavo</span>
+            </button>
+            <button type="button" onclick="setTransactionAccount('Jessica')" id="acc-btn-Jessica"
+              class="tx-acc-btn py-2.5 px-2 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 font-bold text-xs flex flex-col items-center gap-1 transition-all">
+              <i data-lucide="user" class="w-4 h-4"></i>
+              <span id="form-acc-label-Jessica">Jessica</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Descrição</label>
+          <input type="text" id="tx-description" required placeholder="Ex: Supermercado, Energia, Salário..."
+            class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#103D82] focus:bg-white" />
+        </div>
+
+        <!-- Categoria e Data -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Categoria</label>
+            <select id="tx-category" required
+              class="w-full px-3.5 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-medium focus:outline-none focus:border-[#103D82] focus:bg-white">
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Data</label>
+            <input type="date" id="tx-date" required
+              class="w-full px-3.5 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-medium focus:outline-none focus:border-[#103D82] focus:bg-white" />
+          </div>
+        </div>
+
+        <!-- Forma de Pagamento (Dinâmica conforme Configurações) -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Forma de Pagamento</label>
+          <div id="payment-methods-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <!-- Parcelamento (Apenas na criação) -->
+        <div id="installments-section" class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="tx-installments" class="text-xs font-bold uppercase tracking-wider text-slate-600">
+              Parcelado em quantas vezes?
+            </label>
+            <select id="tx-installments" onchange="updateInstallmentPreview()"
+              class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-800 font-bold text-sm focus:outline-none focus:border-[#103D82]">
+              <option value="1">1x (À vista)</option>
+              <option value="2">2x</option>
+              <option value="3">3x</option>
+              <option value="4">4x</option>
+              <option value="5">5x</option>
+              <option value="6">6x</option>
+              <option value="7">7x</option>
+              <option value="8">8x</option>
+              <option value="9">9x</option>
+              <option value="10">10x</option>
+              <option value="11">11x</option>
+              <option value="12">12x</option>
+              <option value="18">18x</option>
+              <option value="24">24x</option>
+            </select>
+          </div>
+
+          <div id="installment-mode-box" class="hidden pt-2 border-t border-slate-200/70 space-y-2">
+            <div class="flex items-center gap-3 text-xs">
+              <label class="flex items-center gap-1.5 font-medium text-slate-700 cursor-pointer">
+                <input type="radio" name="installmentMode" value="divide" checked onchange="updateInstallmentPreview()" class="accent-[#103D82]" />
+                <span>Dividir valor total</span>
+              </label>
+              <label class="flex items-center gap-1.5 font-medium text-slate-700 cursor-pointer">
+                <input type="radio" name="installmentMode" value="repeat" onchange="updateInstallmentPreview()" class="accent-[#103D82]" />
+                <span>Repetir valor por mês</span>
+              </label>
+            </div>
+            <p id="installment-preview-text" class="text-xs font-semibold text-[#103D82] bg-navy-100/70 px-3 py-2 rounded-xl">
+              Serão lançadas parcelas nos próximos meses.
+            </p>
+          </div>
+        </div>
+
+        <!-- Botão Salvar -->
+        <button type="submit" id="save-tx-btn"
+          class="w-full py-4 rounded-2xl bg-[#103D82] hover:bg-[#0B2B5C] active:scale-[0.99] text-white font-bold text-base shadow-lg shadow-blue-900/20 transition-all">
+          Salvar Lançamento
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: CONFIRMAÇÃO DE EXCLUSÃO                                        -->
+  <!-- ===================================================================== -->
+  <div id="delete-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-5">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-fade-in">
+      <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3">
+        <i data-lucide="trash-2" class="w-6 h-6"></i>
+      </div>
+      <h3 class="text-lg font-extrabold text-slate-800 text-center">Excluir Lançamento?</h3>
+      <p id="delete-modal-desc" class="text-xs text-slate-500 text-center mt-1.5 leading-relaxed">
+        Esta ação não poderá ser desfeita.
+      </p>
+
+      <div id="delete-options" class="mt-5 space-y-2.5">
+        <button id="btn-delete-single" onclick="confirmDeleteTransaction(false)"
+          class="w-full py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm transition-colors">
+          Excluir este lançamento
+        </button>
+        <button id="btn-delete-all-installments" onclick="confirmDeleteTransaction(true)"
+          class="hidden w-full py-3 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm border border-red-200 transition-colors">
+          Excluir esta e todas as parcelas
+        </button>
+        <button onclick="closeDeleteModal()"
+          class="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST DE FEEDBACK -->
+  <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 backdrop-blur-md text-white px-4 py-2.5 rounded-full text-xs font-semibold shadow-xl opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toast-message">Salvo com sucesso!</span>
+  </div>
+
+  <!-- Script Principal (ES Module) -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
