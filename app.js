@@ -2,8 +2,7 @@ import { auth, db, appId } from "./firebase-config.js";
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signOut,
-  updateProfile
+  signOut
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
   collection,
@@ -113,6 +112,7 @@ window.handleAuthSubmit = async (e) => {
   errorBox.classList.add("hidden");
   btn.disabled = true;
   btn.classList.add("opacity-70");
+  btn.querySelector("span").textContent = "Entrando...";
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
@@ -160,6 +160,7 @@ window.handleAuthSubmit = async (e) => {
   } finally {
     btn.disabled = false;
     btn.classList.remove("opacity-70");
+    btn.querySelector("span").textContent = "Entrar no App";
   }
 };
 
@@ -1195,7 +1196,11 @@ window.confirmDeleteTransaction = async (deleteAllGroup) => {
 // INICIALIZAÇÃO DA PÁGINA
 // =========================================================================
 window.addEventListener("DOMContentLoaded", () => {
-  syncSettingsToUI();
-  lucide.createIcons();
   initAuth();
+  try {
+    syncSettingsToUI();
+    lucide.createIcons();
+  } catch (error) {
+    console.error("Erro ao inicializar interface:", error);
+  }
 });
