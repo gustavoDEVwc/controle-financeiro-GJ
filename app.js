@@ -1,7 +1,6 @@
 import { auth, db, appId } from "./firebase-config.js";
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
   updateProfile
@@ -63,7 +62,7 @@ const getSettingsDocRef = () =>
 // =========================================================================
 const state = {
   user: null,
-  authMode: "login",
+ 
   transactions: [],
   settings: structuredClone(DEFAULT_SETTINGS),
   selectedYear: new Date().getFullYear(),
@@ -100,27 +99,14 @@ function initAuth() {
   });
 }
 
-window.switchAuthMode = (mode) => {
-  state.authMode = mode;
-  const isLogin = mode === "login";
-  document.getElementById("tab-login").className = isLogin
-    ? "py-2.5 text-sm font-semibold rounded-xl bg-white text-[#103D82] shadow-sm transition-all"
-    : "py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-all";
-  document.getElementById("tab-register").className = !isLogin
-    ? "py-2.5 text-sm font-semibold rounded-xl bg-white text-[#103D82] shadow-sm transition-all"
-    : "py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-all";
 
-  document.getElementById("auth-name-group").classList.toggle("hidden", isLogin);
-  document.getElementById("auth-submit-btn").querySelector("span").textContent =
-    isLogin ? "Entrar no App" : "Criar Meu Acesso";
-  document.getElementById("auth-error").classList.add("hidden");
-};
+
 
 window.handleAuthSubmit = async (e) => {
   e.preventDefault();
+
   const email = document.getElementById("auth-email").value.trim();
   const password = document.getElementById("auth-password").value;
-  const person = document.getElementById("auth-person").value;
   const errorBox = document.getElementById("auth-error");
   const btn = document.getElementById("auth-submit-btn");
 
@@ -129,34 +115,54 @@ window.handleAuthSubmit = async (e) => {
   btn.classList.add("opacity-70");
 
   try {
-    if (state.authMode === "login") {
-      await signInWithEmailAndPassword(auth, email, password);
-    } else {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(cred.user, { displayName: person });
-    }
+    await signInWithEmailAndPassword(auth, email, password);
+
     showToast("Bem-vindos ao controle financeiro!");
+
   } catch (error) {
     console.error("Erro auth:", error.code, error.message);
-    let msg = `Não foi possível autenticar (${error.code || "erro"}). Verifique e-mail e senha.`;
-    if (
-      error.code === "auth/invalid-credential" ||
-      error.code === "auth/wrong-password" ||
-      error.code === "auth/user-not-found"
-    ) {
-      msg = "E-mail ou senha incorretos.";
-    } else if (error.code === "auth/email-already-in-use") {
-      msg = 'Este e-mail já está cadastrado. Use a aba "Entrar".';
-    } else if (error.code === "auth/weak-password") {
-      msg = "A senha deve ter pelo menos 6 caracteres.";
+
+    let msg;
+
+    switch (error.code) {
+      case "auth/invalid-credential":
+      case "auth/wrong-password":
+      case "auth/user-not-found":
+      case "auth/invalid-email":
+        msg = "E-mail ou senha incorretos.";
+        break;
+
+      case "auth/permission-denied-on-the-service":
+      case "auth/unauthorized-domain":
+      case "auth/app-not-authorized":
+        msg = "Acesso bloqueado pela configuração de segurança.";
+        break;
+
+      case "auth/too-many-requests":
+        msg = "Muitas tentativas. Tente novamente mais tarde.";
+        break;
+
+      case "auth/network-request-failed":
+        msg = "Verifique sua conexão com a internet.";
+        break;
+
+      case "auth/user-disabled":
+        msg = "Esta conta está desativada.";
+        break;
+
+      default:
+        msg = `Não foi possível autenticar (${error.code || "erro"}).`;
     }
+
     errorBox.textContent = msg;
     errorBox.classList.remove("hidden");
+
   } finally {
     btn.disabled = false;
     btn.classList.remove("opacity-70");
   }
 };
+
 
 window.handleLogout = async () => {
   await signOut(auth);

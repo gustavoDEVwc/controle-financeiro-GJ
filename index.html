@@ -64,23 +64,16 @@
     <div class="max-w-md w-full mx-auto px-5 -mt-7 flex-1 flex flex-col justify-start pb-8">
       <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/70 p-6 border border-slate-100">
         <!-- Seletor Entrar / Criar Conta -->
-        <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-2xl mb-6">
-          <button type="button" id="tab-login" onclick="switchAuthMode('login')" class="py-2.5 text-sm font-semibold rounded-xl bg-white text-[#103D82] shadow-sm transition-all">
-            Entrar
-          </button>
-          <button type="button" id="tab-register" onclick="switchAuthMode('register')" class="py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-all">
-            Criar Acesso
-          </button>
-        </div>
+       <div class="text-center mb-6">
+  <h2 class="text-xl font-extrabold text-[#103D82]">
+    Acesso Restrito
+  </h2>
+  <p class="text-xs text-slate-500 mt-1">
+    Entre com sua conta autorizada.
+  </p>
+</div>
 
-        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-          <div id="auth-name-group" class="hidden">
-            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Quem está acessando?</label>
-            <select id="auth-person" class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-medium focus:outline-none focus:border-[#103D82] focus:bg-white transition-colors">
-              <option value="Gustavo">Gustavo</option>
-              <option value="Jessica">Jessica</option>
-            </select>
-          </div>
+       
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">E-mail</label>
